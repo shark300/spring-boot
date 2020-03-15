@@ -17,9 +17,6 @@
 package org.springframework.boot.actuate.metrics.ws;
 
 import java.lang.reflect.Method;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -77,22 +74,30 @@ public final class WsTags {
 	}
 
 	public static Tag operation(Object endpoint) {
-		Optional<Method> method = Optional.ofNullable(endpoint).map(MethodEndpoint.class::isInstance)
-				.map(MethodEndpoint.class::cast).map(MethodEndpoint::getMethod);
-
-		Optional<String> localPartWithoutSuffix = method.map(method1 -> method1.getAnnotation(PayloadRoot.class))
-				.map(PayloadRoot::localPart).filter(hasSuffix()).map(removeSuffix());
-
-		return localPartWithoutSuffix.or(() -> method.map(Method::getName))
-				.map(operation -> Tag.of("operation", operation)).orElse(OPERATION_UNKNOWN);
+		Tag operation = OPERATION_UNKNOWN;
+		if (endpoint instanceof MethodEndpoint) {
+			Method method = ((MethodEndpoint) endpoint).getMethod();
+			PayloadRoot annotation = method.getAnnotation(PayloadRoot.class);
+			if (annotation != null) {
+				String localPart = annotation.localPart();
+				if (hasSuffix(localPart)) {
+					String operationName = removeSuffix(localPart);
+					operation = Tag.of("operation", operationName);
+				}
+			}
+			else {
+				operation = Tag.of("operation", method.getName());
+			}
+		}
+		return operation;
 	}
 
-	private static Predicate<String> hasSuffix() {
-		return messageName -> messageName.endsWith("Request");
+	private static boolean hasSuffix(String localPart) {
+		return localPart.endsWith("Request");
 	}
 
-	private static Function<String, String> removeSuffix() {
-		return messageName -> messageName.substring(0, messageName.length() - "Request".length());
+	private static String removeSuffix(String messageName) {
+		return messageName.substring(0, messageName.length() - "Request".length());
 	}
 
 	public static Tag method(HttpServletRequest request) {

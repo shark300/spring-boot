@@ -17,7 +17,8 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 
 import org.springframework.boot.actuate.metrics.ws.WsMetricsEndpointInterceptor.TimingContext;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotationCollectors;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
@@ -83,11 +84,15 @@ public class WsMetricsFilter extends OncePerRequestFilter {
 	}
 
 	private Set<Timed> findTimedAnnotations(AnnotatedElement element) {
-		return AnnotationUtils.getDeclaredRepeatableAnnotations(element, Timed.class);
+		MergedAnnotations annotations = MergedAnnotations.from(element);
+		if (!annotations.isPresent(Timed.class)) {
+			return Collections.emptySet();
+		}
+		return annotations.stream(Timed.class).collect(MergedAnnotationCollectors.toAnnotationSet());
 	}
 
 	private void record(TimingContext timingContext) {
-		Set<Timed> annotations = Set.of();
+		Set<Timed> annotations = getTimedAnnotations(timingContext);
 		Timer.Sample timerSample = timingContext.getTimerSample();
 		Supplier<Iterable<Tag>> tags = () -> this.tagsProvider.getTags(timingContext.getRequest(),
 				timingContext.getResponse(), timingContext.getEndpoint(), timingContext.getResponseMessage(),
