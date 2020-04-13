@@ -1,0 +1,37 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://example.com/" targetNamespace="http://example.com/"
+           attributeFormDefault="unqualified" elementFormDefault="unqualified">
+    <xs:element name="getPersonV1Request" type="tns:getPersonV1Request"/>
+    <xs:element name="getOriginV1Request" type="tns:getOriginV1Request"/>
+    <xs:element name="getPersonV1Response" type="tns:getPersonV1Response"/>
+    <xs:element name="getOriginV1Response" type="tns:getOriginV1Response"/>
+    <xs:element name="ServiceException" type="tns:ServiceException"/>
+
+    <xs:complexType name="getPersonV1Request">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="getPersonV1Response">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="getOriginV1Request">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="getOriginV1Response">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ServiceException">
+        <xs:sequence>
+            <xs:element name="messageid" type="xs:string"/>
+            <xs:element name="text" type="xs:string"/>
+            <xs:element minOccurs="0" name="variables" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

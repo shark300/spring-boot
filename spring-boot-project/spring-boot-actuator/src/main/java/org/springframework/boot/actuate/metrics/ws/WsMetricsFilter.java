@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -13,10 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Builder;
 
-import org.springframework.boot.actuate.metrics.ws.WsMetricsEndpointInterceptor.TimingContext;
+import org.springframework.boot.actuate.metrics.AutoTimer;
 import org.springframework.core.annotation.MergedAnnotationCollectors;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.util.NestedServletException;
 
+/**
+ * Intercepts incoming WS requests and records metrics about Spring MVC execution time
+ * and results.
+ *
+ * @author Jon Schneider
+ * @author Phillip Webb
+ * @since 2.0.0
+ */
 public class WsMetricsFilter extends OncePerRequestFilter {
 
 	private final MeterRegistry registry;
@@ -32,14 +39,21 @@ public class WsMetricsFilter extends OncePerRequestFilter {
 
 	private final String metricName;
 
-	private final boolean autoTimeRequests;
+	private final AutoTimer autoTimer;
 
+	/**
+	 * Create a new {@link WsMetricsFilter} instance.
+	 * @param registry the meter registry
+	 * @param tagsProvider the tags provider
+	 * @param metricName the metric name
+	 * @param autoTimer the auto-timers to apply or {@code null} to disable auto-timing
+	 */
 	public WsMetricsFilter(MeterRegistry registry, WsTagsProvider tagsProvider, String metricName,
-			boolean autoTimeRequests) {
+			AutoTimer autoTimer) {
 		this.registry = registry;
 		this.tagsProvider = tagsProvider;
 		this.metricName = metricName;
-		this.autoTimeRequests = autoTimeRequests;
+		this.autoTimer = autoTimer;
 	}
 
 	@Override
@@ -94,23 +108,20 @@ public class WsMetricsFilter extends OncePerRequestFilter {
 	private void record(TimingContext timingContext) {
 		Set<Timed> annotations = getTimedAnnotations(timingContext);
 		Timer.Sample timerSample = timingContext.getTimerSample();
-		Supplier<Iterable<Tag>> tags = () -> this.tagsProvider.getTags(timingContext.getRequest(),
-				timingContext.getResponse(), timingContext.getEndpoint(), timingContext.getResponseMessage(),
-				timingContext.getException());
 		if (annotations.isEmpty()) {
-			if (this.autoTimeRequests) {
-				stop(timerSample, tags, Timer.builder(this.metricName));
-			}
+			Builder builder = this.autoTimer.builder(this.metricName);
+			Timer timer = getTimer(builder, timingContext);
+			timerSample.stop(timer);
+			return;
 		}
-		else {
-			for (Timed annotation : annotations) {
-				stop(timerSample, tags, Timer.builder(annotation, this.metricName));
-			}
+		for (Timed annotation : annotations) {
+			Builder builder = Timer.builder(annotation, this.metricName);
+			timerSample.stop(getTimer(builder, timingContext));
 		}
 	}
 
-	private void stop(Timer.Sample timerSample, Supplier<Iterable<Tag>> tags, Timer.Builder builder) {
-		timerSample.stop(builder.tags(tags.get()).register(this.registry));
+	private Timer getTimer(Builder builder, TimingContext timingContext) {
+		return builder.tags(this.tagsProvider.getTags(timingContext.getRequest(), timingContext.getResponse(), timingContext.getEndpoint(), timingContext.getResponseMessage(), timingContext.getException())).register(this.registry);
 	}
 
 }

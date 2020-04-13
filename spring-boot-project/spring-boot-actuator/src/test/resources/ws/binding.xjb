@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+			   xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+			   version="2.1">
+
+	<jaxb:globalBindings>
+		<xjc:simple/>
+	</jaxb:globalBindings>
+</jaxb:bindings>

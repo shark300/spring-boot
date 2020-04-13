@@ -54,6 +54,8 @@ public class MetricsProperties {
 
 	private final Web web = new Web();
 
+	private final Ws ws = new Ws();
+
 	private final Distribution distribution = new Distribution();
 
 	public boolean isUseGlobalRegistry() {
@@ -74,6 +76,10 @@ public class MetricsProperties {
 
 	public Web getWeb() {
 		return this.web;
+	}
+
+	public Ws getWs() {
+		return this.ws;
 	}
 
 	public Distribution getDistribution() {
@@ -175,6 +181,139 @@ public class MetricsProperties {
 				 * Name of the metric for received requests.
 				 */
 				private String metricName = "http.server.requests";
+
+				/**
+				 * Whether the trailing slash should be ignored when recording metrics.
+				 */
+				private boolean ignoreTrailingSlash = true;
+
+				/**
+				 * Auto-timed request settings.
+				 */
+				@NestedConfigurationProperty
+				private final AutoTimeProperties autotime = new AutoTimeProperties();
+
+				public AutoTimeProperties getAutotime() {
+					return this.autotime;
+				}
+
+				public String getMetricName() {
+					return this.metricName;
+				}
+
+				public void setMetricName(String metricName) {
+					this.metricName = metricName;
+				}
+
+				public boolean isIgnoreTrailingSlash() {
+					return this.ignoreTrailingSlash;
+				}
+
+				public void setIgnoreTrailingSlash(boolean ignoreTrailingSlash) {
+					this.ignoreTrailingSlash = ignoreTrailingSlash;
+				}
+
+			}
+
+		}
+
+	}
+
+	public static class Ws {
+
+		private final Client client = new Client();
+
+		private final Server server = new Server();
+
+		public Client getClient() {
+			return this.client;
+		}
+
+		public Server getServer() {
+			return this.server;
+		}
+
+		public static class Client {
+
+			private final ClientRequest request = new ClientRequest();
+
+			/**
+			 * Maximum number of unique URI tag values allowed. After the max number of
+			 * tag values is reached, metrics with additional tag values are denied by
+			 * filter.
+			 */
+			private int maxUriTags = 100;
+
+			public ClientRequest getRequest() {
+				return this.request;
+			}
+
+			public int getMaxUriTags() {
+				return this.maxUriTags;
+			}
+
+			public void setMaxUriTags(int maxUriTags) {
+				this.maxUriTags = maxUriTags;
+			}
+
+			public static class ClientRequest {
+
+				/**
+				 * Name of the metric for sent requests.
+				 */
+				private String metricName = "ws.client.requests";
+
+				/**
+				 * Auto-timed request settings.
+				 */
+				@NestedConfigurationProperty
+				private final AutoTimeProperties autotime = new AutoTimeProperties();
+
+				public AutoTimeProperties getAutotime() {
+					return this.autotime;
+				}
+
+				public String getMetricName() {
+					return this.metricName;
+				}
+
+				public void setMetricName(String metricName) {
+					this.metricName = metricName;
+				}
+
+			}
+
+		}
+
+		public static class Server {
+
+			private final ServerRequest request = new ServerRequest();
+
+			/**
+			 * Maximum number of unique URI tag values allowed. After the max number of
+			 * tag values is reached, metrics with additional tag values are denied by
+			 * filter.
+			 */
+			private int maxUriTags = 100;
+
+			public ServerRequest getRequest() {
+				return this.request;
+			}
+
+			public int getMaxUriTags() {
+				return this.maxUriTags;
+			}
+
+			public void setMaxUriTags(int maxUriTags) {
+				this.maxUriTags = maxUriTags;
+			}
+
+			public static class ServerRequest {
+
+				/**
+				 * Name of the metric for received requests.
+				 */
+				private String metricName = "ws.server.requests";
 
 				/**
 				 * Whether the trailing slash should be ignored when recording metrics.

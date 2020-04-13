@@ -19,7 +19,6 @@ package org.springframework.boot.actuate.metrics.ws;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.Tag;
 
 import org.springframework.ws.WebServiceMessage;
@@ -44,14 +43,5 @@ public interface WsTagsProvider {
 	 */
 	Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object endpoint,
 			WebServiceMessage responseMessage, Throwable exception);
-
-	/**
-	 * Provides tags to be used by {@link LongTaskTimer long task timers}.
-	 * @param request the HTTP request
-	 * @param handler the handler for the request or {@code null} if the handler is
-	 * unknown
-	 * @return tags to associate with metrics recorded for the request
-	 */
-	Iterable<Tag> getLongRequestTags(HttpServletRequest request, Object handler);
 
 }

@@ -35,14 +35,9 @@ public class DefaultWsTagsProvider implements WsTagsProvider {
 	@Override
 	public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object endpoint,
 			WebServiceMessage responseMessage, Throwable exception) {
-		return Tags.of(WsTags.method(request), WsTags.uri(request), WsTags.faultReason(exception, responseMessage),
+		return Tags.of(WsTags.method(request), WsTags.uri(request), WsTags.faultReason(responseMessage),
 				WsTags.exception(exception), WsTags.status(response), WsTags.outcome(response),
 				WsTags.operation(endpoint), WsTags.faultCode(responseMessage));
-	}
-
-	@Override
-	public Iterable<Tag> getLongRequestTags(HttpServletRequest request, Object handler) {
-		return Tags.of(WsTags.method(request), WsTags.uri(request));
 	}
 
 }

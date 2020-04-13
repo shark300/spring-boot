@@ -42,7 +42,7 @@ import static java.util.Optional.ofNullable;
  * @author Michael McFadyen
  * @since 2.0.0
  */
-public final class WsTags {
+public class WsTags {
 
 	private static final Tag URI_UNKNOWN = Tag.of("uri", "UNKNOWN");
 
@@ -113,7 +113,7 @@ public final class WsTags {
 				.orElse(URI_UNKNOWN);
 	}
 
-	public static Tag faultReason(Throwable exception, WebServiceMessage responseMessage) {
+	public static Tag faultReason(WebServiceMessage responseMessage) {
 		return ofNullable(responseMessage).filter(e -> e instanceof SoapMessage).map(e -> (SoapMessage) e)
 				.map(SoapMessage::getFaultReason).map(e -> Tag.of("faultReason", e)).orElse(FAULTREASON_NONE);
 	}
